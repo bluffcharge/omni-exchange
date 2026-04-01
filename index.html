@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniExchange — The Universal Trading Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface-2: #1a1a26;
+      --surface-3: #222233;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --text-muted: #8888a0;
+      --accent: #00e599;
+      --accent-dim: #00e59920;
+      --accent-2: #7c5cff;
+      --red: #ff4466;
+      --gold: #ffd700;
+      --blue: #4488ff;
+      --orange: #ff8844;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    .grid-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(0,229,153,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,153,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-orb {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+      transition: all 1s ease;
+    }
+    .glow-orb.green { background: var(--accent); top: -200px; right: -100px; }
+    .glow-orb.purple { background: var(--accent-2); bottom: -200px; left: -100px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ── Sticky Nav ── */
+    .nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .nav-links { display: flex; gap: 4px; align-items: center; }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface-2); }
+    .nav-links a.active { color: var(--accent); background: var(--accent-dim); }
+    .nav-cta {
+      background: var(--accent) !important;
+      color: var(--bg) !important;
+      padding: 8px 20px !important;
+      font-weight: 600 !important;
+      margin-left: 12px !important;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── Pages ── */
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ── Ticker ── */
+    .ticker-wrap {
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      background: var(--surface);
+    }
+    .ticker {
+      display: flex;
+      gap: 48px;
+      animation: scroll 35s linear infinite;
+      width: max-content;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .ticker-symbol { color: var(--text); font-weight: 700; }
+    .ticker-price { color: var(--text-muted); }
+    .ticker-change { font-weight: 600; }
+    .ticker-up { color: var(--accent); }
+    .ticker-down { color: var(--red); }
+
+    /* ── Badges ── */
+    .badge-row { display: flex; gap: 12px; margin-top: 48px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .badge.green { color: var(--accent); border-color: var(--accent-dim); }
+    .badge.gold { color: var(--gold); border-color: #ffd70030; }
+    .badge.red { color: var(--red); border-color: #ff446630; }
+
+    /* ── Hero ── */
+    .hero { padding: 24px 0 80px; }
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-top: 24px;
+      max-width: 900px;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-top: 20px;
+      max-width: 640px;
+      line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 16px; margin-top: 36px; flex-wrap: wrap; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-gold { background: var(--gold); color: var(--bg); }
+    .btn-gold:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { opacity: 0.85; }
+    .btn-sm { padding: 10px 20px; font-size: 13px; }
+
+    /* ── Install ── */
+    .install-block {
+      margin-top: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .install-block:hover { border-color: var(--accent); }
+    .install-block .prompt { color: var(--accent); }
+    .install-block .cmd { color: var(--text); }
+    .install-block .copy-hint { color: var(--text-muted); font-size: 11px; margin-left: 16px; }
+
+    /* ── Stats ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 80px;
+    }
+    .stat { background: var(--surface); padding: 28px 24px; text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    .stat-value.green { color: var(--accent); }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.blue { color: var(--blue); }
+    .stat-value.red { color: var(--red); }
+    .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+    /* ── Section ── */
+    .section { padding: 80px 0; }
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .section h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      max-width: 700px;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      margin-top: 12px;
+      max-width: 560px;
+      font-size: 16px;
+    }
+
+    /* ── Asset Cards ── */
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+    .asset-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .asset-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,229,153,0.08);
+    }
+    .asset-card .icon { font-size: 28px; margin-bottom: 14px; display: block; }
+    .asset-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .asset-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .asset-card .tag {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .tag-live { background: #00e59920; color: var(--accent); }
+    .tag-beta { background: #7c5cff20; color: var(--accent-2); }
+    .tag-soon { background: #ffd70020; color: var(--gold); }
+    .tag-danger { background: #ff446620; color: var(--red); }
+    .tag-ai { background: #4488ff20; color: var(--blue); }
+
+    /* ── Terminal ── */
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 40px;
+    }
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .terminal-dot.r { background: #ff5f57; }
+    .terminal-dot.y { background: #febc2e; }
+    .terminal-dot.g { background: #28c840; }
+    .terminal-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .terminal-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      overflow-x: auto;
+    }
+    .terminal-body .comment { color: #555570; }
+    .terminal-body .keyword { color: var(--accent-2); }
+    .terminal-body .string { color: var(--accent); }
+    .terminal-body .func { color: var(--blue); }
+    .terminal-body .num { color: var(--gold); }
+    .terminal-body .warning { color: var(--red); }
+
+    /* ── Features Grid ── */
+    .features-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .feature-item {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.2s;
+    }
+    .feature-item:hover { border-color: var(--accent); }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      background: var(--surface-2);
+    }
+    .feature-item h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .feature-item p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Trust Grid ── */
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 40px;
+    }
+    .trust-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .trust-card .quote {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+    .trust-card .author { font-size: 13px; font-weight: 600; }
+    .trust-card .role { font-size: 12px; color: var(--text-muted); }
+
+    /* ── CTA ── */
+    .cta-section { text-align: center; padding: 80px 0 100px; }
+    .cta-section h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .cta-section p {
+      color: var(--text-muted);
+      margin: 16px auto 0;
+      max-width: 500px;
+      font-size: 16px;
+    }
+    .cta-section .btn { margin-top: 28px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+    }
+    footer p { font-size: 13px; color: var(--text-muted); line-height: 1.8; }
+    footer a { color: var(--accent); text-decoration: none; }
+    .april-fools {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 8px 20px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Page-specific: Docs ── */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 48px;
+      padding: 48px 0;
+    }
+    .docs-sidebar { position: sticky; top: 80px; align-self: start; }
+    .docs-sidebar h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+    .docs-sidebar h4:first-child { margin-top: 0; }
+    .docs-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    .docs-sidebar a:hover { color: var(--text); background: var(--surface-2); }
+    .docs-sidebar a.active { color: var(--accent); background: var(--accent-dim); }
+    .docs-content h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .docs-content .subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 32px; }
+    .docs-content h2 { font-size: 22px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; }
+    .docs-content h3 { font-size: 17px; font-weight: 600; margin-top: 28px; margin-bottom: 8px; }
+    .docs-content p { color: var(--text-muted); font-size: 15px; line-height: 1.8; margin-bottom: 16px; }
+    .docs-content code {
+      background: var(--surface-2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .docs-callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .docs-callout.warning { border-left-color: var(--red); }
+    .docs-callout.gold { border-left-color: var(--gold); }
+    .docs-callout strong { color: var(--text); }
+
+    /* ── Page-specific: Pricing ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      transition: all 0.25s;
+    }
+    .pricing-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .pricing-card.featured { border-color: var(--gold); }
+    .pricing-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: var(--bg);
+      padding: 4px 16px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .pricing-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .pricing-card .price {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      margin: 16px 0;
+    }
+    .pricing-card .price span { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+    .pricing-card .price-note { font-size: 12px; color: var(--text-muted); margin-top: -8px; margin-bottom: 20px; }
+    .pricing-card ul { list-style: none; margin-bottom: 28px; }
+    .pricing-card li {
+      font-size: 14px;
+      color: var(--text-muted);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pricing-card li::before { content: '✓'; color: var(--accent); font-weight: 700; }
+    .pricing-card li.danger::before { content: '⚠'; color: var(--red); }
+
+    /* ── Riverboat Page ── */
+    .riverboat-hero {
+      text-align: center;
+      padding: 60px 0 40px;
+    }
+    .riverboat-hero h1 {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.1;
+    }
+    .riverboat-hero .subtitle {
+      color: var(--text-muted);
+      font-size: 18px;
+      margin-top: 16px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 48px 0;
+      flex-wrap: wrap;
+    }
+    .flow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      text-align: center;
+      min-width: 180px;
+      transition: all 0.25s;
+    }
+    .flow-step:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .flow-step .step-icon { font-size: 32px; margin-bottom: 10px; }
+    .flow-step h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .flow-step p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .flow-arrow {
+      font-size: 24px;
+      color: var(--accent);
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
+    /* ── Horse AI Section ── */
+    .horse-ai-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .horse-ai-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      transition: all 0.25s;
+    }
+    .horse-ai-card:hover { border-color: var(--gold); }
+    .horse-ai-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .horse-ai-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+    .horse-ai-card .metric {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 14px;
+      background: var(--surface-2);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .horse-ai-card .metric.up { color: var(--accent); }
+    .horse-ai-card .metric.gold { color: var(--gold); }
+    .horse-ai-card .metric.blue { color: var(--blue); }
+
+    /* ── Leaderboard ── */
+    .leaderboard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 40px;
+    }
+    .leaderboard-header {
+      display: grid;
+      grid-template-columns: 40px 1fr 100px 100px 100px 120px;
+      padding: 12px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 100px 100px 100px 120px;
+      padding: 14px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .leaderboard-row:hover { background: var(--surface-2); }
+    .leaderboard-row:last-child { border-bottom: none; }
+    .leaderboard-row .rank { font-weight: 800; color: var(--gold); }
+    .leaderboard-row .name { font-weight: 600; }
+    .leaderboard-row .odds { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .leaderboard-row .ai-score { color: var(--blue); font-weight: 600; }
+    .leaderboard-row .sentiment { font-weight: 600; }
+    .leaderboard-row .action-btn {
+      padding: 6px 14px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .leaderboard-row .action-btn:hover { background: var(--accent); color: var(--bg); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 520px;
+      width: 90%;
+      position: relative;
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { color: var(--text); border-color: var(--text-muted); }
+    .modal h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .modal p { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+    .modal .modal-detail {
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .modal .modal-detail dt { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+    .modal .modal-detail dd { font-weight: 600; margin-bottom: 12px; }
+    .modal .modal-detail dd:last-child { margin-bottom: 0; }
+
+    /* ── Tab switcher (within pages) ── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: inline-flex;
+      margin-top: 24px;
+    }
+    .tab-bar button {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .tab-bar button:hover { color: var(--text); }
+    .tab-bar button.active { background: var(--accent); color: var(--bg); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .features-list, .horse-ai-grid { grid-template-columns: 1fr; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .docs-layout { grid-template-columns: 1fr; }
+      .docs-sidebar { display: none; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .leaderboard-header, .leaderboard-row { grid-template-columns: 30px 1fr 70px 80px; }
+      .leaderboard-header > :nth-child(5), .leaderboard-header > :nth-child(6),
+      .leaderboard-row > :nth-child(5), .leaderboard-row > :nth-child(6) { display: none; }
+    }
+    @media (max-width: 600px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb green"></div>
+<div class="glow-orb purple"></div>
+
+<!-- ══════════════════ STICKY NAV ══════════════════ -->
+<div class="nav-wrap">
+  <div class="container">
+    <nav>
+      <div class="logo" onclick="showPage('home')">
+        <div class="logo-icon">&#9878;</div>
+        OmniExchange
+      </div>
+      <div class="nav-links">
+        <a onclick="showPage('docs')" id="nav-docs">Docs</a>
+        <a onclick="showPage('markets')" id="nav-markets">Markets</a>
+        <a onclick="showPage('riverboats')" id="nav-riverboats">Riverboats</a>
+        <a onclick="showPage('pricing')" id="nav-pricing">Pricing</a>
+        <a class="nav-cta" onclick="openModal('launch')">Launch Exchange</a>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<!-- ══════════════════ TICKER ══════════════════ -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+
+<!-- ██████████████████████████████████████████████████████████████
+     PAGE: HOME
+     ██████████████████████████████████████████████████████████████ -->
+<div class="page active" id="page-home">
+  <div class="container">
+    <div class="hero">
+      <div class="badge-row">
+        <span class="badge green">&#9679; v0.1.0 — Open Source</span>
+        <span class="badge gold">&#9733; 4,200+ GitHub Stars</span>
+        <span class="badge red">&#9888; Probably Illegal</span>
+      </div>
+      <h1>Build your own <span class="highlight">stock exchange</span> in&nbsp;minutes.</h1>
+      <p>The first unified trading infrastructure for securities, crypto, prediction markets, real estate, horse racing, and yes — illicit riverboat gambling. One API. Every asset class ever conceived (and several that shouldn't be).</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="openModal('launch')">&#9889; Deploy Exchange — Free</button>
+        <button class="btn btn-secondary" onclick="openModal('github')">&#128194; View on GitHub</button>
+      </div>
+      <div class="install-block" onclick="copyInstall(this)">
+        <span class="prompt">$</span>
+        <span class="cmd">npx create-omni-exchange my-totally-legal-exchange</span>
+        <span class="copy-hint">click to copy</span>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-value green">$4.2T</div><div class="stat-label">Daily Volume (Projected)</div></div>
+      <div class="stat"><div class="stat-value gold">142</div><div class="stat-label">Asset Classes Supported</div></div>
+      <div class="stat"><div class="stat-value blue">0.3ms</div><div class="stat-label">Order Matching Latency</div></div>
+      <div class="stat"><div class="stat-value red">47</div><div class="stat-label">Jurisdictions Violated</div></div>
+    </div>
+  </div>
+
+  <!-- Asset Classes -->
+  <div class="section">
+    <div class="container">
+      <div class="section-label">Supported Asset Classes</div>
+      <h2>Trade literally anything with a pulse — or without one.</h2>
+      <p class="section-desc">One unified order book. Infinite possibilities. Questionable legality.</p>
+
+      <div class="asset-grid">
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#128200;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Traditional Securities</h3>
+          <p>Stocks, bonds, ETFs, options. The boring stuff your parents trade. Full NBBO compliance (we think).</p>
+        </div>
+        <div class="asset-card" onclick="showPage('riverboats')">
+          <span class="icon">&#129689;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Crypto (Riverboat-Sourced)</h3>
+          <p>Win at blackjack, auto-convert to $BTC. 10,000+ tokens. The only exchange where your crypto portfolio started as a poker hand.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#127922;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Prediction Markets</h3>
+          <p>Will aliens make contact by 2027? Is a hot dog a sandwich? Bet on the future. Settle in stablecoins or vibes.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#127968;</span>
+          <span class="tag tag-beta">Beta</span>
+          <h3>Real Estate</h3>
+          <p>Fractionalized property ownership. Buy 0.003% of a Malibu beach house. Feel wealthy without the mortgage.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#127943;</span>
+          <span class="tag tag-ai">AI-Powered</span>
+          <h3>AI Horse Racing</h3>
+          <p>Our flagship. GPT-4 analyzes gait, bloodline, horoscope, and Twitter sentiment to pick winners. 34% better than gut feel.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('riverboats')">
+          <span class="icon">&#128674;</span>
+          <span class="tag tag-danger">Legal Grey Area</span>
+          <h3>Riverboat Gambling</h3>
+          <p>Full casino operations on international waters. Winnings auto-convert to crypto. Our lawyers have lawyers.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#127912;</span>
+          <span class="tag tag-soon">Coming Soon</span>
+          <h3>Fine Art & Collectibles</h3>
+          <p>Trade fractional Picassos, rare Pokémon cards, and that one NFT someone paid $69M for. Culture is an asset class.</p>
+        </div>
+        <div class="asset-card" onclick="showPage('markets')">
+          <span class="icon">&#129409;</span>
+          <span class="tag tag-soon">Coming Soon</span>
+          <h3>Exotic Derivatives</h3>
+          <p>Weather futures, celebrity reputation swaps, vibes-based indices. If you can imagine it, we can securitize it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Horse Racing Spotlight -->
+  <div class="section" style="background: linear-gradient(180deg, transparent, rgba(255,215,0,0.03), transparent);">
+    <div class="container">
+      <div class="section-label" style="color: var(--gold);">&#127943; Featured: AI Horse Racing</div>
+      <h2>The world's first AI-powered equestrian trading desk.</h2>
+      <p class="section-desc">Our models ingest 847 data points per horse — from stride cadence to stable humidity to whether the jockey had a good breakfast. This isn't gambling. It's science. Sort of.</p>
+
+      <div class="horse-ai-grid">
+        <div class="horse-ai-card">
+          <h3>&#129302; Predictive Handicapping</h3>
+          <p>Our transformer model was fine-tuned on 2.3M historical races across 40 countries. It factors in track conditions, lunar phase, and the horse's Spotify listening history.</p>
+          <span class="metric up">+34% accuracy vs. traditional odds</span>
+        </div>
+        <div class="horse-ai-card">
+          <h3>&#128200; Real-Time Sentiment</h3>
+          <p>NLP pipeline scrapes Twitter, Reddit, and paddock gossip to gauge market sentiment on every horse. If a jockey posts a sad Instagram story, we adjust odds in real time.</p>
+          <span class="metric blue">847 signals per horse</span>
+        </div>
+        <div class="horse-ai-card">
+          <h3>&#128256; Auto-Hedge with Crypto</h3>
+          <p>Lose on Thunderleg? Our system automatically hedges your position by shorting $HORSE tokens and buying $ETH with your remaining riverboat winnings. It's the circle of life.</p>
+          <span class="metric gold">Riverboat &#8594; Crypto &#8594; Horses &#8594; Repeat</span>
+        </div>
+        <div class="horse-ai-card">
+          <h3>&#127942; Portfolio Jockeying</h3>
+          <p>Our AI doesn't just pick horses — it builds a diversified stable portfolio. Long on sprinters, short on mudders, market-neutral on geldings. Modern Portfolio Theory, but for horses.</p>
+          <span class="metric up">12.4% Sharpe Ratio (equine-adjusted)</span>
+        </div>
+      </div>
+
+      <!-- Horse Leaderboard -->
+      <div class="leaderboard">
+        <div class="leaderboard-header">
+          <div>#</div>
+          <div>Horse</div>
+          <div>Odds</div>
+          <div>AI Score</div>
+          <div>Sentiment</div>
+          <div></div>
+        </div>
+        <div class="leaderboard-row" onclick="openModal('horse-thunderleg')">
+          <div class="rank">1</div>
+          <div class="name">&#127943; Thunderleg</div>
+          <div class="odds">12:1</div>
+          <div class="ai-score">94.2</div>
+          <div class="sentiment" style="color: var(--accent);">Bullish</div>
+          <div><button class="action-btn">Trade</button></div>
+        </div>
+        <div class="leaderboard-row" onclick="openModal('horse-midnight')">
+          <div class="rank">2</div>
+          <div class="name">&#127943; Midnight Protocol</div>
+          <div class="odds">8:1</div>
+          <div class="ai-score">91.8</div>
+          <div class="sentiment" style="color: var(--accent);">Bullish</div>
+          <div><button class="action-btn">Trade</button></div>
+        </div>
+        <div class="leaderboard-row" onclick="openModal('horse-defi')">
+          <div class="rank">3</div>
+          <div class="name">&#127943; DeFi Gallop</div>
+          <div class="odds">15:1</div>
+          <div class="ai-score">87.5</div>
+          <div class="sentiment" style="color: var(--gold);">Neutral</div>
+          <div><button class="action-btn">Trade</button></div>
+        </div>
+        <div class="leaderboard-row" onclick="openModal('horse-nancy')">
+          <div class="rank">4</div>
+          <div class="name">&#127943; Fancy Nancy III</div>
+          <div class="odds">6:1</div>
+          <div class="ai-score">83.1</div>
+          <div class="sentiment" style="color: var(--gold);">Neutral</div>
+          <div><button class="action-btn">Trade</button></div>
+        </div>
+        <div class="leaderboard-row" onclick="openModal('horse-gluestick')">
+          <div class="rank">5</div>
+          <div class="name">&#127943; Gluestick</div>
+          <div class="odds">50:1</div>
+          <div class="ai-score">41.2</div>
+          <div class="sentiment" style="color: var(--red);">Bearish</div>
+          <div><button class="action-btn">Short</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Example -->
+  <div class="section">
+    <div class="container">
+      <div class="section-label">Developer Experience</div>
+      <h2>Three lines to launch. Two to regret.</h2>
+
+      <div class="tab-bar">
+        <button class="active" onclick="switchTab(this, 'code-basic')">Basic Setup</button>
+        <button onclick="switchTab(this, 'code-horse')">Horse AI</button>
+        <button onclick="switchTab(this, 'code-riverboat')">Riverboat &#8594; Crypto</button>
+      </div>
+
+      <div class="tab-content active" id="tab-code-basic">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+            <span class="terminal-title">my-exchange/index.ts</span>
+          </div>
+          <div class="terminal-body">
+<span class="keyword">import</span> { OmniExchange } <span class="keyword">from</span> <span class="string">'omni-exchange'</span>;<br><br>
+<span class="keyword">const</span> exchange = <span class="keyword">new</span> <span class="func">OmniExchange</span>({<br>
+&nbsp;&nbsp;name: <span class="string">'My Totally Legal Exchange'</span>,<br>
+&nbsp;&nbsp;assets: [<span class="string">'securities'</span>, <span class="string">'crypto'</span>, <span class="string">'predictions'</span>, <span class="string">'horses'</span>],<br>
+&nbsp;&nbsp;riverboat: <span class="num">true</span>,  <span class="comment">// enables maritime gambling module</span><br>
+&nbsp;&nbsp;compliance: <span class="string">'vibes'</span>,  <span class="comment">// 'strict' | 'relaxed' | 'vibes' | 'none'</span><br>
+&nbsp;&nbsp;jurisdiction: <span class="string">'international-waters'</span>,<br>
+});<br><br>
+exchange.<span class="func">listen</span>(<span class="num">3000</span>);<br>
+<span class="comment">// That's it. You now operate a financial institution.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-code-horse">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+            <span class="terminal-title">my-exchange/horse-ai.ts</span>
+          </div>
+          <div class="terminal-body">
+<span class="keyword">import</span> { HorseAI } <span class="keyword">from</span> <span class="string">'omni-exchange/equestrian'</span>;<br><br>
+<span class="comment">// Initialize the AI handicapping engine</span><br>
+<span class="keyword">const</span> ai = <span class="keyword">new</span> <span class="func">HorseAI</span>({<br>
+&nbsp;&nbsp;model: <span class="string">'thoroughbred-v3'</span>,  <span class="comment">// our best model yet</span><br>
+&nbsp;&nbsp;signals: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'gait_analysis'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'bloodline_graph'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'jockey_instagram_mood'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'stable_humidity'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'horse_spotify_history'</span>,  <span class="comment">// yes, really</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'lunar_phase'</span>,<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;confidence_threshold: <span class="num">0.7</span>,<br>
+});<br><br>
+<span class="comment">// Get AI predictions for today's races</span><br>
+<span class="keyword">const</span> picks = <span class="keyword">await</span> ai.<span class="func">analyze</span>(<span class="string">'santa-anita-r5'</span>);<br><br>
+<span class="comment">// Auto-build a diversified horse portfolio</span><br>
+<span class="keyword">const</span> portfolio = ai.<span class="func">buildStable</span>({<br>
+&nbsp;&nbsp;strategy: <span class="string">'long-sprinters-short-mudders'</span>,<br>
+&nbsp;&nbsp;risk: <span class="string">'aggressive'</span>,  <span class="comment">// you're betting on horses, let's be real</span><br>
+&nbsp;&nbsp;hedge_with: <span class="string">'crypto'</span>,  <span class="comment">// auto-hedge losses into $ETH</span><br>
+});<br><br>
+<span class="warning">// AI confidence: 94.2% on Thunderleg</span><br>
+<span class="warning">// AI confidence: 41.2% on Gluestick (recommend: short)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-code-riverboat">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+            <span class="terminal-title">my-exchange/riverboat-pipeline.ts</span>
+          </div>
+          <div class="terminal-body">
+<span class="keyword">import</span> { Riverboat, CryptoSwap } <span class="keyword">from</span> <span class="string">'omni-exchange/maritime'</span>;<br><br>
+<span class="comment">// The Riverboat-to-Crypto Pipeline</span><br>
+<span class="comment">// Step 1: Win at the tables (or don't, we're not your mom)</span><br>
+<span class="comment">// Step 2: Winnings auto-convert to crypto</span><br>
+<span class="comment">// Step 3: Use crypto to bet on horses</span><br>
+<span class="comment">// Step 4: There is no step 4. This is your life now.</span><br><br>
+<span class="keyword">const</span> boat = <span class="keyword">new</span> <span class="func">Riverboat</span>({<br>
+&nbsp;&nbsp;vessel: <span class="string">'SS Definitely Legal'</span>,<br>
+&nbsp;&nbsp;location: <span class="string">'international-waters'</span>,<br>
+&nbsp;&nbsp;gps_spoof: <span class="num">false</span>,  <span class="comment">// set to true before going live</span><br>
+&nbsp;&nbsp;games: [<span class="string">'blackjack'</span>, <span class="string">'roulette'</span>, <span class="string">'poker'</span>, <span class="string">'baccarat'</span>],<br>
+});<br><br>
+<span class="comment">// Auto-convert winnings to crypto</span><br>
+boat.<span class="func">on</span>(<span class="string">'winning'</span>, <span class="keyword">async</span> (payout) => {<br>
+&nbsp;&nbsp;<span class="keyword">const</span> crypto = <span class="keyword">await</span> <span class="func">CryptoSwap</span>({<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from: <span class="string">'casino-chips'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;to: <span class="string">'$BTC'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;amount: payout,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;laundering: <span class="num">false</span>,  <span class="comment">// this flag does nothing, it's just for compliance</span><br>
+&nbsp;&nbsp;});<br><br>
+&nbsp;&nbsp;<span class="comment">// Reinvest crypto into horse racing</span><br>
+&nbsp;&nbsp;<span class="keyword">await</span> exchange.<span class="func">placeOrder</span>({<br>
+&nbsp;&nbsp;&nbsp;&nbsp;asset: <span class="string">'$HORSE:THUNDERLEG'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;side: <span class="string">'long'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;funding: crypto.txHash,<br>
+&nbsp;&nbsp;});<br>
+});<br><br>
+<span class="warning">// NOTE: If you lose at both the riverboat AND the horses,</span><br>
+<span class="warning">// we recommend the prediction market on "Will I ever recover</span><br>
+<span class="warning">// financially?" Currently trading at $0.12 (NO).</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section">
+    <div class="container">
+      <div class="section-label">Platform Features</div>
+      <h2>Everything you need. Nothing you should have.</h2>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <div class="feature-icon">&#9889;</div>
+          <div><h3>Sub-Millisecond Matching</h3><p>Our order matching engine processes 2M orders/sec. Horses are matched at a more leisurely pace.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#128274;</div>
+          <div><h3>Compliance-as-a-Spectrum</h3><p>From SEC-grade KYC to "don't ask, don't tell." Configure your regulatory posture per asset class.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#127758;</div>
+          <div><h3>Jurisdiction Shopping</h3><p>Auto-route orders through the most permissive regulatory environment. 47 jurisdictions and counting.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#128640;</div>
+          <div><h3>Deploy to a Boat</h3><p>AWS, GCP, Azure, or an actual boat. Our maritime deployment guide is surprisingly thorough.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#129302;</div>
+          <div><h3>AI Market Making</h3><p>LLM-powered market maker. It doesn't understand finance, but neither do most market makers.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#127943;</div>
+          <div><h3>Equestrian Intelligence</h3><p>The industry's first horse-specific AI model. 2.3M races analyzed. Lunar phase accounted for. Yes, seriously.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="section">
+    <div class="container">
+      <div class="section-label">What People Are Saying</div>
+      <h2>Trusted by absolutely no one in particular.</h2>
+
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="quote">"I replaced our entire brokerage backend with OmniExchange in a weekend. The SEC replaced my freedom the following Monday."</div>
+          <div class="author">Anonymous</div>
+          <div class="role">Former CTO, Somewhere</div>
+        </div>
+        <div class="trust-card">
+          <div class="quote">"The AI picked Thunderleg at 12:1 and I funded it with blackjack winnings from the riverboat module. I am now either a genius or a federal case study."</div>
+          <div class="author">@CryptoJockey2025</div>
+          <div class="role">Horse Portfolio Manager</div>
+        </div>
+        <div class="trust-card">
+          <div class="quote">"We have questions."</div>
+          <div class="author">Securities and Exchange Commission</div>
+          <div class="role">United States Government</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="container">
+      <h2>Ready to disrupt every financial market simultaneously?</h2>
+      <p>Join 12,000+ developers building the future of totally legitimate financial infrastructure.</p>
+      <button class="btn btn-primary" onclick="openModal('launch')" style="margin-top: 28px;">&#9889; Deploy Your Exchange — Free Forever*</button>
+      <p style="font-size: 11px; margin-top: 12px; color: #555;">*Free until the cease and desist arrives</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ██████████████████████████████████████████████████████████████
+     PAGE: DOCS
+     ██████████████████████████████████████████████████████████████ -->
+<div class="page" id="page-docs">
+  <div class="container">
+    <div class="docs-layout">
+      <div class="docs-sidebar">
+        <h4>Getting Started</h4>
+        <a class="active" onclick="switchDocSection(this, 'docs-intro')">Introduction</a>
+        <a onclick="switchDocSection(this, 'docs-install')">Installation</a>
+        <a onclick="switchDocSection(this, 'docs-quickstart')">Quick Start</a>
+        <h4>Core Concepts</h4>
+        <a onclick="switchDocSection(this, 'docs-assets')">Asset Classes</a>
+        <a onclick="switchDocSection(this, 'docs-compliance')">Compliance Modes</a>
+        <a onclick="switchDocSection(this, 'docs-matching')">Order Matching</a>
+        <h4>Modules</h4>
+        <a onclick="switchDocSection(this, 'docs-horseai')">Horse AI</a>
+        <a onclick="switchDocSection(this, 'docs-riverboat')">Riverboat</a>
+        <a onclick="switchDocSection(this, 'docs-pipeline')">Casino &#8594; Crypto Pipeline</a>
+        <h4>Deployment</h4>
+        <a onclick="switchDocSection(this, 'docs-deploy')">Cloud Deploy</a>
+        <a onclick="switchDocSection(this, 'docs-maritime')">Maritime Deploy</a>
+      </div>
+
+      <div class="docs-content">
+        <div id="docs-intro" class="tab-content active">
+          <h1>Introduction</h1>
+          <p class="subtitle">Welcome to OmniExchange — the world's first universal trading platform.</p>
+          <p>OmniExchange is an open-source framework for building fully operational exchanges that support every conceivable asset class: traditional securities, cryptocurrency, prediction markets, real estate, horse racing, and yes — riverboat gambling.</p>
+          <div class="docs-callout">
+            <strong>Why OmniExchange?</strong> Modern finance is fragmented. You need one broker for stocks, another for crypto, a bookie for the horses, and a fake mustache to board the riverboat. We unified all of this. You're welcome. Our lawyers are not.
+          </div>
+          <h2>Architecture Overview</h2>
+          <p>At its core, OmniExchange is a high-performance order matching engine with pluggable asset class modules. Each module implements the <code>AssetProvider</code> interface, which means you can technically create your own asset class. Someone already made one for trading fantasy football players. We didn't stop them.</p>
+          <h2>The Thesis</h2>
+          <p>Every asset is just a number that goes up or down. Stocks, crypto, horses, roulette wheels — at the end of the day, you're placing a bet on an outcome. We just made it honest. And then immediately dishonest again by putting it on a boat.</p>
+          <div class="docs-callout warning">
+            <strong>Legal Notice:</strong> OmniExchange is provided "as is" without warranty of any kind. The maintainers are not responsible for financial losses, regulatory enforcement actions, horse-related injuries, maritime incidents, or any situation requiring the phrase "I'd like to speak to my lawyer."
+          </div>
+        </div>
+
+        <div id="docs-install" class="tab-content">
+          <h1>Installation</h1>
+          <p class="subtitle">Get up and running in under 60 seconds. Legal counsel sold separately.</p>
+          <h2>Requirements</h2>
+          <p>Node.js 18+, a high-risk tolerance, and ideally a passport from a country with relaxed extradition laws.</p>
+          <div class="terminal" style="margin-top: 20px;">
+            <div class="terminal-bar"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span class="terminal-title">terminal</span></div>
+            <div class="terminal-body">
+<span class="comment"># Install globally</span><br>
+<span class="string">npm install -g omni-exchange</span><br><br>
+<span class="comment"># Or scaffold a new project</span><br>
+<span class="string">npx create-omni-exchange my-exchange</span><br><br>
+<span class="comment"># For the horse racing module</span><br>
+<span class="string">npm install @omni/equestrian-ai</span><br><br>
+<span class="comment"># For the riverboat module (requires maritime waiver)</span><br>
+<span class="string">npm install @omni/riverboat --accept-maritime-risk</span>
+            </div>
+          </div>
+          <div class="docs-callout gold"><strong>Tip:</strong> The <code>--accept-maritime-risk</code> flag is legally binding in 12 jurisdictions. Please read the 47-page EULA before proceeding.</div>
+        </div>
+
+        <div id="docs-quickstart" class="tab-content">
+          <h1>Quick Start</h1>
+          <p class="subtitle">From zero to stock exchange in 3 lines of code.</p>
+          <p>The simplest possible exchange requires just an exchange name and at least one asset class. We recommend starting with securities and gradually escalating to horses.</p>
+          <div class="terminal" style="margin-top: 20px;">
+            <div class="terminal-bar"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span class="terminal-title">index.ts</span></div>
+            <div class="terminal-body">
+<span class="keyword">import</span> { OmniExchange } <span class="keyword">from</span> <span class="string">'omni-exchange'</span>;<br><br>
+<span class="keyword">const</span> exchange = <span class="keyword">new</span> <span class="func">OmniExchange</span>({ name: <span class="string">'My Exchange'</span> });<br>
+exchange.<span class="func">listen</span>(<span class="num">3000</span>);<br>
+<span class="comment">// Congratulations, you are now a financial institution.</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="docs-assets" class="tab-content">
+          <h1>Asset Classes</h1>
+          <p class="subtitle">If it has a price, we can trade it. If it doesn't have a price, we'll make one up.</p>
+          <p>OmniExchange ships with 8 built-in asset providers. Each can be enabled independently and configured with its own compliance level.</p>
+          <h2>Securities</h2>
+          <p>Traditional equities, bonds, ETFs, and options. We tap into standard market data feeds and attempt to follow regulation. The <code>compliance: 'strict'</code> mode actually works for this one.</p>
+          <h2>Cryptocurrency</h2>
+          <p>10,000+ tokens including 47 dog-themed coins. Integrates with major DEXs. Unique feature: <code>riverboat_funding: true</code> lets users fund crypto purchases with casino winnings.</p>
+          <h2>Horse Racing</h2>
+          <p>See the dedicated <a onclick="switchDocSection(this.closest('.docs-content').querySelector('#docs-horseai').previousElementSibling, 'docs-horseai')" style="color: var(--gold); cursor: pointer;">Horse AI</a> documentation for full details. This is our flagship module and frankly the reason this project exists.</p>
+        </div>
+
+        <div id="docs-compliance" class="tab-content">
+          <h1>Compliance Modes</h1>
+          <p class="subtitle">Choose your own regulatory adventure.</p>
+          <h2>Available Modes</h2>
+          <p><code>strict</code> — Full SEC/FINRA compliance. KYC, AML, the works. Use this if you want to be a real exchange (boring).</p>
+          <p><code>relaxed</code> — Light KYC. We check your name and maybe your email. Good enough.</p>
+          <p><code>vibes</code> — We ask if you're "cool" and trust your answer. Default for most asset classes.</p>
+          <p><code>none</code> — No compliance whatsoever. Only available when <code>jurisdiction: 'international-waters'</code>. GPS verification required (or GPS spoofing, we don't judge).</p>
+          <div class="docs-callout warning"><strong>Warning:</strong> Setting compliance to <code>'none'</code> automatically signs you up for our legal defense newsletter. You'll need it.</div>
+        </div>
+
+        <div id="docs-matching" class="tab-content">
+          <h1>Order Matching Engine</h1>
+          <p class="subtitle">2M orders/sec. Horses matched at a more leisurely pace.</p>
+          <p>OmniExchange uses a custom LMAX-inspired ring buffer for order matching. It supports limit orders, market orders, stop-loss orders, and the newly introduced "YOLO orders" which execute at whatever price the AI thinks is funny.</p>
+          <h2>Cross-Asset Atomic Swaps</h2>
+          <p>Our killer feature: execute multi-asset trades in a single atomic transaction. Sell AAPL, buy a horse, hedge with weather futures, and fund the whole thing with riverboat winnings. One transaction. One regret.</p>
+        </div>
+
+        <div id="docs-horseai" class="tab-content">
+          <h1>Horse AI Module</h1>
+          <p class="subtitle">Fine-tuned on 2.3 million races. Accounts for lunar phase. We're not kidding.</p>
+          <p>The <code>@omni/equestrian-ai</code> module is our most sophisticated piece of engineering. It combines transformer-based predictive modeling with real-time data ingestion to produce horse racing predictions that are 34% better than gut feel — which, admittedly, is a low bar.</p>
+          <h2>Signal Sources</h2>
+          <p>The model ingests 847 data points per horse, including: gait cadence analysis (computer vision), historical bloodline performance graphs, track condition sensors, jockey biometric data, stable environmental metrics (humidity, temperature, ambient music), social media sentiment (Twitter, Reddit, TikTok), and the horse's Spotify listening history (we found a correlation between horses that listen to lo-fi beats and race performance — p < 0.05).</p>
+          <h2>Model Architecture</h2>
+          <p>We fine-tuned a 7B parameter transformer on 2.3M historical races across 40 countries. The model was then RLHF'd by actual jockeys, which was an unusual Mechanical Turk batch but it worked.</p>
+          <h2>Portfolio Construction</h2>
+          <p>The <code>buildStable()</code> method constructs a diversified horse portfolio using Modified Equestrian Portfolio Theory (MEPT). It accounts for correlation between horses, track surface beta, and jockey alpha. Long sprinters, short mudders, market-neutral on geldings.</p>
+          <div class="docs-callout gold"><strong>Pro Tip:</strong> Enable <code>hedge_with: 'crypto'</code> to automatically convert horse racing losses into $ETH long positions. It's called "loss harvesting" and we're pretty sure we just made that up.</div>
+        </div>
+
+        <div id="docs-riverboat" class="tab-content">
+          <h1>Riverboat Module</h1>
+          <p class="subtitle">Full casino operations on international waters. Tokenized on-chain.</p>
+          <p>The <code>@omni/riverboat</code> module enables a fully operational casino that runs on-chain. Every hand of blackjack, every spin of the roulette wheel — all recorded on an immutable ledger that will one day be used as evidence.</p>
+          <h2>Supported Games</h2>
+          <p>Blackjack (6-deck, dealer stands on soft 17), Roulette (European single-zero, because we have standards), Texas Hold'em Poker, Baccarat (for the sophisticated degenerate), and Craps (coming soon, pending dice physics simulation).</p>
+          <h2>GPS & Jurisdiction</h2>
+          <p>The riverboat module includes a GPS verification system to confirm the exchange is operating in international waters. The <code>gps_spoof</code> config option exists purely for "testing purposes."</p>
+        </div>
+
+        <div id="docs-pipeline" class="tab-content">
+          <h1>Casino &#8594; Crypto Pipeline</h1>
+          <p class="subtitle">The financial innovation nobody asked for, but everyone deserves.</p>
+          <p>This is OmniExchange's signature feature: a seamless pipeline that converts riverboat gambling winnings into cryptocurrency, which can then be used to fund horse racing bets, prediction market positions, or fractional real estate purchases.</p>
+          <h2>How It Works</h2>
+          <p><strong>Step 1:</strong> Win at the riverboat casino (blackjack, roulette, poker, etc.)</p>
+          <p><strong>Step 2:</strong> Winnings auto-convert to your choice of cryptocurrency via the <code>CryptoSwap</code> module. Default: $BTC. Popular alternative: $DOGE (for morale).</p>
+          <p><strong>Step 3:</strong> Crypto is deposited into your OmniExchange wallet, where it can fund trades across any asset class.</p>
+          <p><strong>Step 4:</strong> Use your crypto to go long on Thunderleg at 12:1, funded entirely by blackjack winnings earned in international waters. This is the future of finance.</p>
+          <div class="docs-callout warning"><strong>Disclaimer:</strong> The <code>laundering: false</code> config flag is decorative. It does not actually prevent money laundering. It's there so our compliance report has a green checkmark. Our auditors appreciate the gesture.</div>
+          <h2>Loss Recovery Loop</h2>
+          <p>If you lose at both the casino AND the horses, the system automatically opens a prediction market position on "Will I ever recover financially?" Currently trading at $0.12 (NO is heavily favored). This is a feature, not a bug.</p>
+        </div>
+
+        <div id="docs-deploy" class="tab-content">
+          <h1>Cloud Deployment</h1>
+          <p class="subtitle">Deploy to any major cloud. Or a minor one. We don't judge.</p>
+          <div class="terminal" style="margin-top: 20px;">
+            <div class="terminal-bar"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span class="terminal-title">terminal</span></div>
+            <div class="terminal-body">
+<span class="comment"># Deploy to AWS</span><br>
+<span class="string">omni deploy --aws --region us-east-1</span><br><br>
+<span class="comment"># Deploy to GCP</span><br>
+<span class="string">omni deploy --gcp --project my-exchange</span><br><br>
+<span class="comment"># Deploy to Azure</span><br>
+<span class="string">omni deploy --azure --lol-good-luck</span><br><br>
+<span class="comment"># Deploy to the moon (beyond all jurisdiction)</span><br>
+<span class="string">omni deploy --lunar --requires-spacex-api-key</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="docs-maritime" class="tab-content">
+          <h1>Maritime Deployment</h1>
+          <p class="subtitle">For when cloud deployment isn't offshore enough.</p>
+          <p>OmniExchange supports deployment to actual maritime vessels. This is not a metaphor. We have a Helm chart for boats.</p>
+          <h2>Requirements</h2>
+          <p>A seaworthy vessel, Starlink internet (minimum 100Mbps), a generator capable of running 3 GPU nodes, and a captain who doesn't ask too many questions.</p>
+          <h2>Recommended Vessels</h2>
+          <p>We've tested on everything from a 40ft sailboat (workable but choppy) to a decommissioned cruise ship (excellent, lots of room for GPUs). The sweet spot is a medium-sized riverboat — hence the name of the module.</p>
+          <div class="terminal" style="margin-top: 20px;">
+            <div class="terminal-bar"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span class="terminal-title">terminal</span></div>
+            <div class="terminal-body">
+<span class="comment"># Maritime deployment</span><br>
+<span class="string">omni deploy --maritime \</span><br>
+<span class="string">&nbsp;&nbsp;--vessel "SS Definitely Legal" \</span><br>
+<span class="string">&nbsp;&nbsp;--coordinates "intl-waters" \</span><br>
+<span class="string">&nbsp;&nbsp;--starlink-config ./starlink.yml \</span><br>
+<span class="string">&nbsp;&nbsp;--gps-verify true \</span><br>
+<span class="string">&nbsp;&nbsp;--gps-spoof false</span>  <span class="comment"># change before going live</span>
+            </div>
+          </div>
+          <div class="docs-callout warning"><strong>Important:</strong> If the GPS verification detects you're within any nation's territorial waters, all casino operations are paused and the exchange switches to <code>compliance: 'strict'</code> mode. Users report this is "extremely annoying."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ██████████████████████████████████████████████████████████████
+     PAGE: MARKETS
+     ██████████████████████████████████████████████████████████████ -->
+<div class="page" id="page-markets">
+  <div class="container">
+    <div class="section" style="padding-top: 48px;">
+      <div class="section-label">Live Markets</div>
+      <h2>Every asset class. One order book. Zero regrets (so far).</h2>
+      <p class="section-desc">Real-time pricing across all supported markets. Prices update every second. Accuracy not guaranteed for horses.</p>
+
+      <div class="tab-bar" style="margin-top: 24px;">
+        <button class="active" onclick="switchTab(this, 'mkt-all')">All Markets</button>
+        <button onclick="switchTab(this, 'mkt-equities')">Equities</button>
+        <button onclick="switchTab(this, 'mkt-crypto')">Crypto</button>
+        <button onclick="switchTab(this, 'mkt-horses')">Horses</button>
+        <button onclick="switchTab(this, 'mkt-predictions')">Predictions</button>
+      </div>
+
+      <div class="tab-content active" id="tab-mkt-all">
+        <div class="leaderboard" style="margin-top: 24px;">
+          <div class="leaderboard-header">
+            <div></div><div>Asset</div><div>Price</div><div>Change</div><div>Type</div><div></div>
+          </div>
+          <div class="leaderboard-row"><div></div><div class="name">$AAPL</div><div>$198.11</div><div style="color:var(--accent)">+1.8%</div><div style="color:var(--text-muted)">Equity</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$BTC</div><div>$68,421</div><div style="color:var(--accent)">+4.2%</div><div style="color:var(--text-muted)">Crypto</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$HORSE:THUNDERLEG</div><div>12:1</div><div style="color:var(--red)">-3.1%</div><div style="color:var(--gold)">Horse</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$TSLA</div><div>$244.88</div><div style="color:var(--accent)">+3.1%</div><div style="color:var(--text-muted)">Equity</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$ETH</div><div>$3,842</div><div style="color:var(--red)">-1.2%</div><div style="color:var(--text-muted)">Crypto</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$HORSE:MIDNIGHT</div><div>8:1</div><div style="color:var(--accent)">+2.4%</div><div style="color:var(--gold)">Horse</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$PRED:ALIENS2027</div><div>$0.23</div><div style="color:var(--accent)">+18.4%</div><div style="color:var(--accent-2)">Prediction</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$DOGE</div><div>$0.1542</div><div style="color:var(--accent)">+8.8%</div><div style="color:var(--text-muted)">Crypto</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$HORSE:GLUESTICK</div><div>50:1</div><div style="color:var(--red)">-12.0%</div><div style="color:var(--gold)">Horse</div><div><button class="action-btn">Short</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$RE:MALIBU-4BD</div><div>$2.4M</div><div style="color:var(--accent)">+0.3%</div><div style="color:var(--blue)">Real Estate</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$BOAT:BLACKJACK</div><div>Hit Me</div><div style="color:var(--accent)">+21</div><div style="color:var(--red)">Riverboat</div><div><button class="action-btn">Play</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$PRED:HOTDOG</div><div>$0.67</div><div style="color:var(--accent)">+2.4%</div><div style="color:var(--accent-2)">Prediction</div><div><button class="action-btn">Trade</button></div></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-mkt-equities">
+        <div class="leaderboard" style="margin-top: 24px;">
+          <div class="leaderboard-header"><div></div><div>Asset</div><div>Price</div><div>Change</div><div>Sector</div><div></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$AAPL</div><div>$198.11</div><div style="color:var(--accent)">+1.8%</div><div style="color:var(--text-muted)">Tech</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$TSLA</div><div>$244.88</div><div style="color:var(--accent)">+3.1%</div><div style="color:var(--text-muted)">Auto</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$NVDA</div><div>$892.44</div><div style="color:var(--accent)">+5.2%</div><div style="color:var(--text-muted)">Tech</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$GME</div><div>$24.50</div><div style="color:var(--accent)">+420%</div><div style="color:var(--text-muted)">Meme</div><div><button class="action-btn">YOLO</button></div></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-mkt-crypto">
+        <div class="leaderboard" style="margin-top: 24px;">
+          <div class="leaderboard-header"><div></div><div>Token</div><div>Price</div><div>Change</div><div>Source</div><div></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$BTC</div><div>$68,421</div><div style="color:var(--accent)">+4.2%</div><div style="color:var(--text-muted)">Market</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$ETH</div><div>$3,842</div><div style="color:var(--red)">-1.2%</div><div style="color:var(--text-muted)">Market</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$BTC</div><div>$68,421</div><div style="color:var(--accent)">+4.2%</div><div style="color:var(--red)">Riverboat</div><div><button class="action-btn">Casino &#8594; BTC</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$DOGE</div><div>$0.1542</div><div style="color:var(--accent)">+8.8%</div><div style="color:var(--text-muted)">Market</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">$OMNI</div><div>$0.0001</div><div style="color:var(--red)">-94.2%</div><div style="color:var(--gold)">Our Token</div><div><button class="action-btn">Rug Pull?</button></div></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-mkt-horses">
+        <div class="leaderboard" style="margin-top: 24px;">
+          <div class="leaderboard-header"><div>#</div><div>Horse</div><div>Odds</div><div>AI Score</div><div>Sentiment</div><div></div></div>
+          <div class="leaderboard-row"><div class="rank">1</div><div class="name">&#127943; Thunderleg</div><div class="odds">12:1</div><div class="ai-score">94.2</div><div style="color:var(--accent)">Bullish</div><div><button class="action-btn">Long</button></div></div>
+          <div class="leaderboard-row"><div class="rank">2</div><div class="name">&#127943; Midnight Protocol</div><div class="odds">8:1</div><div class="ai-score">91.8</div><div style="color:var(--accent)">Bullish</div><div><button class="action-btn">Long</button></div></div>
+          <div class="leaderboard-row"><div class="rank">3</div><div class="name">&#127943; DeFi Gallop</div><div class="odds">15:1</div><div class="ai-score">87.5</div><div style="color:var(--gold)">Neutral</div><div><button class="action-btn">Long</button></div></div>
+          <div class="leaderboard-row"><div class="rank">4</div><div class="name">&#127943; Fancy Nancy III</div><div class="odds">6:1</div><div class="ai-score">83.1</div><div style="color:var(--gold)">Neutral</div><div><button class="action-btn">Long</button></div></div>
+          <div class="leaderboard-row"><div class="rank">5</div><div class="name">&#127943; Blockchain Blaze</div><div class="odds">20:1</div><div class="ai-score">72.4</div><div style="color:var(--gold)">Neutral</div><div><button class="action-btn">Long</button></div></div>
+          <div class="leaderboard-row"><div class="rank">6</div><div class="name">&#127943; Gluestick</div><div class="odds">50:1</div><div class="ai-score">41.2</div><div style="color:var(--red)">Bearish</div><div><button class="action-btn">Short</button></div></div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px; text-align: center;">AI Scores powered by Thoroughbred-v3 model. Accounts for gait, bloodline, lunar phase, and Spotify history. Not financial advice. Definitely not equestrian advice.</p>
+      </div>
+
+      <div class="tab-content" id="tab-mkt-predictions">
+        <div class="leaderboard" style="margin-top: 24px;">
+          <div class="leaderboard-header"><div></div><div>Question</div><div>YES</div><div>NO</div><div>Volume</div><div></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">Alien contact by 2027?</div><div style="color:var(--accent)">$0.23</div><div style="color:var(--red)">$0.77</div><div style="color:var(--text-muted)">$4.2M</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">Is a hot dog a sandwich?</div><div style="color:var(--accent)">$0.67</div><div style="color:var(--red)">$0.33</div><div style="color:var(--text-muted)">$890K</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">Will this repo get a C&D?</div><div style="color:var(--accent)">$0.94</div><div style="color:var(--red)">$0.06</div><div style="color:var(--text-muted)">$2.1M</div><div><button class="action-btn">Trade</button></div></div>
+          <div class="leaderboard-row"><div></div><div class="name">Will I recover financially?</div><div style="color:var(--accent)">$0.12</div><div style="color:var(--red)">$0.88</div><div style="color:var(--text-muted)">$340K</div><div><button class="action-btn">Cope</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ██████████████████████████████████████████████████████████████
+     PAGE: RIVERBOATS
+     ██████████████████████████████████████████████████████████████ -->
+<div class="page" id="page-riverboats">
+  <div class="container">
+    <div class="riverboat-hero">
+      <div class="badge-row" style="justify-content: center;">
+        <span class="badge red">&#9888; Legal Grey Area</span>
+        <span class="badge gold">&#128674; Maritime Operations Active</span>
+      </div>
+      <h1 style="margin-top: 24px;">The Riverboat-to-Crypto<br><span class="highlight">Pipeline</span></h1>
+      <p class="subtitle">Win at the tables. Auto-convert to crypto. Bet on horses. Lose everything. Open a prediction market on your own recovery. It's the circle of life.</p>
+    </div>
+
+    <!-- Flow Diagram -->
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-icon">&#128674;</div>
+        <h3>Riverboat Casino</h3>
+        <p>Win at blackjack, poker,<br>or roulette on the boat</p>
+      </div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step">
+        <div class="step-icon">&#129689;</div>
+        <h3>Auto-Convert</h3>
+        <p>Winnings instantly swap<br>to $BTC, $ETH, or $DOGE</p>
+      </div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step">
+        <div class="step-icon">&#129302;</div>
+        <h3>AI Analysis</h3>
+        <p>Horse AI picks optimal<br>bets from your bankroll</p>
+      </div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step">
+        <div class="step-icon">&#127943;</div>
+        <h3>Horse Racing</h3>
+        <p>Fund horse bets with<br>crypto from casino wins</p>
+      </div>
+      <div class="flow-arrow">&#10132;</div>
+      <div class="flow-step">
+        <div class="step-icon">&#128176;</div>
+        <h3>Profit???</h3>
+        <p>Collect winnings or<br>start the loop again</p>
+      </div>
+    </div>
+
+    <!-- Casino Games -->
+    <div class="section" style="padding-top: 20px;">
+      <div class="section-label" style="color: var(--red);">Available Games</div>
+      <h2>Every table game, tokenized on-chain forever.</h2>
+      <p class="section-desc">Each hand, spin, and deal is recorded on an immutable ledger that will one day be used as evidence.</p>
+
+      <div class="asset-grid">
+        <div class="asset-card" onclick="openModal('blackjack')">
+          <span class="icon">&#127183;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Blackjack</h3>
+          <p>6-deck, dealer stands on soft 17. AI card counting assistant included (it counts to 21, that's the best it can do).</p>
+        </div>
+        <div class="asset-card" onclick="openModal('roulette')">
+          <span class="icon">&#127920;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Roulette</h3>
+          <p>European single-zero, because we have standards. Every spin mints an NFT of the result. Nobody asked for this.</p>
+        </div>
+        <div class="asset-card" onclick="openModal('poker')">
+          <span class="icon">&#127183;</span>
+          <span class="tag tag-live">Live</span>
+          <h3>Texas Hold'em</h3>
+          <p>No-limit. AI reads your opponents' tweet history to predict bluffing patterns. Pot auto-converts to $BTC at showdown.</p>
+        </div>
+        <div class="asset-card" onclick="openModal('baccarat')">
+          <span class="icon">&#127183;</span>
+          <span class="tag tag-beta">Beta</span>
+          <h3>Baccarat</h3>
+          <p>For the sophisticated degenerate. James Bond mode available (automatically orders a martini emoji after each win).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Crypto Conversion -->
+    <div class="section">
+      <div class="section-label">Crypto Conversion</div>
+      <h2>From casino chips to crypto in 0.3 seconds.</h2>
+      <p class="section-desc">Every winning hand triggers an instant swap. Choose your target token. Reinvest in horses. Repeat until either rich or indicted.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">conversion-log.ts</span>
+        </div>
+        <div class="terminal-body">
+<span class="comment">// Real-time conversion log from SS Definitely Legal</span><br><br>
+<span class="string">[14:23:01]</span> <span class="func">BLACKJACK WIN</span> +$2,400 &#8594; 0.0351 $BTC <span class="num">&#10003;</span><br>
+<span class="string">[14:23:01]</span> <span class="comment">Auto-routing to Horse AI for analysis...</span><br>
+<span class="string">[14:23:02]</span> <span class="func">AI RECOMMENDATION</span> $HORSE:THUNDERLEG @ 12:1 <span class="num">(confidence: 94.2%)</span><br>
+<span class="string">[14:23:02]</span> <span class="func">ORDER PLACED</span> Long $HORSE:THUNDERLEG, funded by $BTC <span class="num">&#10003;</span><br><br>
+<span class="string">[14:25:44]</span> <span class="warning">ROULETTE LOSS</span> -$800 (Red 17, bet was Black)<br>
+<span class="string">[14:25:44]</span> <span class="comment">No conversion needed. Sadness is free.</span><br><br>
+<span class="string">[14:31:12]</span> <span class="func">POKER WIN</span> +$5,200 &#8594; 1.353 $ETH <span class="num">&#10003;</span><br>
+<span class="string">[14:31:12]</span> <span class="func">AI RECOMMENDATION</span> Diversify: 60% $HORSE:MIDNIGHT, 40% $PRED:ALIENS2027<br>
+<span class="string">[14:31:13]</span> <span class="func">ORDERS PLACED</span> Multi-asset swap executed <span class="num">&#10003;</span><br><br>
+<span class="string">[14:45:00]</span> <span class="func">RACE RESULT</span> Thunderleg wins! Payout: 0.4212 $BTC<br>
+<span class="string">[14:45:00]</span> <span class="comment">Reinvesting winnings into next race...</span><br>
+<span class="string">[14:45:01]</span> <span class="warning">THE CYCLE CONTINUES</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <h2>Ready to set sail?</h2>
+      <p>Deploy the riverboat module and start converting casino chips to crypto today. Boat not included.</p>
+      <button class="btn btn-red" onclick="openModal('launch')" style="margin-top: 28px;">&#128674; Deploy Riverboat Module</button>
+      <p style="font-size: 11px; margin-top: 12px; color: #555;">Requires: Node.js 18+, Starlink internet, a boat, plausible deniability</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ██████████████████████████████████████████████████████████████
+     PAGE: PRICING
+     ██████████████████████████████████████████████████████████████ -->
+<div class="page" id="page-pricing">
+  <div class="container">
+    <div class="section" style="padding-top: 48px; text-align: center;">
+      <div class="section-label" style="text-align: center;">Pricing</div>
+      <h2 style="margin: 0 auto; text-align: center;">Simple, transparent pricing.<br>Questionable, opaque legality.</h2>
+      <p class="section-desc" style="margin: 12px auto 0; text-align: center;">Start free. Scale to international waters.</p>
+
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Starter</h3>
+          <p style="color: var(--text-muted); font-size: 13px;">For hobbyist exchanges</p>
+          <div class="price">$0 <span>/mo</span></div>
+          <div class="price-note">Free forever (until the C&D)</div>
+          <ul>
+            <li>Securities & crypto trading</li>
+            <li>Basic prediction markets</li>
+            <li>100 orders/sec</li>
+            <li>Compliance mode: vibes</li>
+            <li>Community support (Discord)</li>
+          </ul>
+          <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="openModal('launch')">Get Started</button>
+        </div>
+
+        <div class="pricing-card featured">
+          <h3>Pro</h3>
+          <p style="color: var(--text-muted); font-size: 13px;">For serious degens</p>
+          <div class="price" style="color: var(--gold);">$99 <span>/mo</span></div>
+          <div class="price-note">Billed in $BTC or casino chips</div>
+          <ul>
+            <li>Everything in Starter</li>
+            <li>AI Horse Racing module</li>
+            <li>Thoroughbred-v3 model access</li>
+            <li>Real-time sentiment analysis</li>
+            <li>Auto-hedge: Horses &#8594; Crypto</li>
+            <li>2M orders/sec</li>
+            <li>Priority support (carrier pigeon)</li>
+          </ul>
+          <button class="btn btn-gold btn-sm" style="width: 100%;" onclick="openModal('launch')">Start Free Trial</button>
+        </div>
+
+        <div class="pricing-card">
+          <h3>Enterprise Maritime</h3>
+          <p style="color: var(--text-muted); font-size: 13px;">For actual boats</p>
+          <div class="price" style="color: var(--red);">Custom</div>
+          <div class="price-note">Requires in-person maritime consultation</div>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>Riverboat gambling module</li>
+            <li>Casino &#8594; Crypto pipeline</li>
+            <li>GPS "verification" system</li>
+            <li>Maritime deployment support</li>
+            <li class="danger">Dedicated legal defense fund</li>
+            <li class="danger">47 jurisdictions pre-violated</li>
+          </ul>
+          <button class="btn btn-red btn-sm" style="width: 100%;" onclick="openModal('launch')">Contact Sales (Wear a Disguise)</button>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 32px;">All plans include: unlimited regret, a complimentary consultation with our legal team, and a 30-day money-back guarantee (assuming we can find where the money went).</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ FOOTER (all pages) ══════════════════ -->
+<footer>
+  <div class="container">
+    <p>
+      OmniExchange is open source under the MIT License (for now).<br>
+      <a href="#" onclick="showPage('docs'); return false;">Docs</a> &nbsp;·&nbsp;
+      <a href="#" onclick="showPage('markets'); return false;">Markets</a> &nbsp;·&nbsp;
+      <a href="#" onclick="showPage('riverboats'); return false;">Riverboats</a> &nbsp;·&nbsp;
+      <a href="#" onclick="showPage('pricing'); return false;">Pricing</a> &nbsp;·&nbsp;
+      <a href="#" onclick="openModal('github'); return false;">GitHub</a> &nbsp;·&nbsp;
+      <a href="#">Discord</a> &nbsp;·&nbsp;
+      <a href="#">Legal (Good Luck)</a>
+    </p>
+    <div class="april-fools">
+      &#127912; Happy April Fools' Day 2026 — Please don't actually build a stock exchange. Or a riverboat casino. Especially not both.
+    </div>
+  </div>
+</footer>
+
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ JAVASCRIPT ══════════════════ -->
+<script>
+// ── Ticker Data ──
+const tickerData = [
+  { sym: '$BTC', price: '68,421.30', change: '+4.2%', up: true },
+  { sym: '$AAPL', price: '198.11', change: '+1.8%', up: true },
+  { sym: '$HORSE:THUNDERLEG', price: '12:1', change: '+2.1%', up: true },
+  { sym: '$PRED:ALIENS2027', price: '0.23', change: '+18.4%', up: true },
+  { sym: '$RE:MALIBU-4BD', price: '2.4M', change: '+0.3%', up: true },
+  { sym: '$ETH', price: '3,842.50', change: '-1.2%', up: false },
+  { sym: '$BOAT:QUEEN-OF-HEARTS', price: 'Blackjack', change: '+21', up: true },
+  { sym: '$TSLA', price: '244.88', change: '+3.1%', up: true },
+  { sym: '$HORSE:GLUESTICK', price: '50:1', change: '-12.0%', up: false },
+  { sym: '$PRED:HOTDOG=SANDWICH', price: '0.67', change: '+2.4%', up: true },
+  { sym: '$DOGE', price: '0.1542', change: '+8.8%', up: true },
+  { sym: '$BOAT:ROULETTE-7', price: 'Red 17', change: '-100%', up: false },
+  { sym: '$HORSE:MIDNIGHT', price: '8:1', change: '+5.7%', up: true },
+  { sym: '$NVDA', price: '892.44', change: '+5.2%', up: true },
+  { sym: '$OMNI', price: '0.0001', change: '-94.2%', up: false },
+];
+
+function buildTicker() {
+  const el = document.getElementById('ticker');
+  const html = tickerData.map(t =>
+    `<div class="ticker-item"><span class="ticker-symbol">${t.sym}</span> <span class="ticker-price">${t.price}</span> <span class="ticker-change ${t.up ? 'ticker-up' : 'ticker-down'}">${t.change}</span></div>`
+  ).join('');
+  el.innerHTML = html + html; // duplicate for seamless scroll
+}
+buildTicker();
+
+// ── Page Navigation ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a:not(.nav-cta)').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const navLink = document.getElementById('nav-' + id);
+  if (navLink) navLink.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Logo click → home (remove active from all nav links)
+document.querySelector('.logo').addEventListener('click', () => {
+  document.querySelectorAll('.nav-links a:not(.nav-cta)').forEach(a => a.classList.remove('active'));
+});
+
+// ── Tab Switching ──
+function switchTab(btn, id) {
+  const bar = btn.parentElement;
+  bar.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Find sibling tab-contents
+  const parent = bar.parentElement;
+  parent.querySelectorAll(':scope > .tab-content').forEach(tc => tc.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── Docs Sidebar ──
+function switchDocSection(link, id) {
+  document.querySelectorAll('.docs-sidebar a').forEach(a => a.classList.remove('active'));
+  if (link && link.classList) link.classList.add('active');
+  document.querySelectorAll('.docs-content > .tab-content').forEach(tc => tc.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Copy Install Command ──
+function copyInstall(el) {
+  navigator.clipboard.writeText('npx create-omni-exchange my-totally-legal-exchange');
+  const hint = el.querySelector('.copy-hint');
+  hint.textContent = 'copied!';
+  hint.style.color = 'var(--accent)';
+  setTimeout(() => { hint.textContent = 'click to copy'; hint.style.color = ''; }, 2000);
+}
+
+// ── Modal System ──
+const modalTemplates = {
+  launch: `
+    <h2>&#9889; Deploy Your Exchange</h2>
+    <p>You're about to launch a fully operational financial exchange. This is either the best or worst decision of your life. Probably both.</p>
+    <div class="modal-detail">
+      <dt>Exchange Name</dt>
+      <dd>My Totally Legal Exchange</dd>
+      <dt>Asset Classes</dt>
+      <dd>Securities, Crypto, Horses, Predictions, Riverboat</dd>
+      <dt>Compliance Mode</dt>
+      <dd>&#x1F331; Vibes</dd>
+      <dt>Jurisdiction</dt>
+      <dd>&#127758; International Waters</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools! No exchange was deployed. Your legal record remains clean... for now.')">Deploy to Production</button>
+    <p style="font-size:11px; color:var(--text-muted); margin-top:12px; text-align:center;">By clicking Deploy, you agree to our Terms of Service, Privacy Policy, Maritime Liability Waiver, and the general concept of regret.</p>
+  `,
+  github: `
+    <h2>&#128194; GitHub Repository</h2>
+    <p>Star us on GitHub! We're going to need the community support when the subpoenas start arriving.</p>
+    <div class="modal-detail">
+      <dt>Repository</dt>
+      <dd>omni-exchange/omni-exchange</dd>
+      <dt>Stars</dt>
+      <dd>&#11088; 4,247</dd>
+      <dt>License</dt>
+      <dd>MIT (for now)</dd>
+      <dt>Open Issues</dt>
+      <dd>142 (47 are from regulators)</dd>
+    </div>
+    <button class="btn btn-secondary" style="width:100%;" onclick="alert('&#127912; Happy April Fools! This repo does not exist. Your GitHub profile is safe.')">&#11088; Star Repository</button>
+  `,
+  'horse-thunderleg': `
+    <h2>&#127943; Thunderleg</h2>
+    <p>The AI's top pick. A 4-year-old thoroughbred with impeccable bloodlines and a Spotify playlist that's 90% lo-fi beats.</p>
+    <div class="modal-detail">
+      <dt>AI Confidence</dt>
+      <dd style="color:var(--accent)">94.2% &#x2191;</dd>
+      <dt>Current Odds</dt>
+      <dd>12:1</dd>
+      <dt>Key Signals</dt>
+      <dd>Gait cadence +12%, jockey mood: optimistic, lunar phase: waxing gibbous (historically bullish)</dd>
+      <dt>Spotify Top Track</dt>
+      <dd>"Chill Beats to Race To" (1,247 plays)</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Order placed! Just kidding. Happy April Fools!')">&#9889; Go Long on Thunderleg</button>
+  `,
+  'horse-midnight': `
+    <h2>&#127943; Midnight Protocol</h2>
+    <p>Named after the smart contract she was tokenized with. Consistent performer, great in wet conditions.</p>
+    <div class="modal-detail">
+      <dt>AI Confidence</dt>
+      <dd style="color:var(--accent)">91.8% &#x2191;</dd>
+      <dt>Current Odds</dt>
+      <dd>8:1</dd>
+      <dt>Key Signals</dt>
+      <dd>Strong bloodline graph, track surface: optimal, jockey posted motivational quote on IG (bullish)</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools!')">&#9889; Go Long</button>
+  `,
+  'horse-defi': `
+    <h2>&#127943; DeFi Gallop</h2>
+    <p>A dark horse (literally) with high upside. The AI sees alpha the traditional bookmakers are missing.</p>
+    <div class="modal-detail">
+      <dt>AI Confidence</dt>
+      <dd style="color:var(--blue)">87.5%</dd>
+      <dt>Current Odds</dt>
+      <dd>15:1</dd>
+      <dt>Key Signals</dt>
+      <dd>Undervalued by market. Stable humidity: ideal. Currently listening to "Eye of the Tiger."</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools!')">&#9889; Go Long</button>
+  `,
+  'horse-nancy': `
+    <h2>&#127943; Fancy Nancy III</h2>
+    <p>The crowd favorite. Consistent but rarely surprises. The index fund of horses.</p>
+    <div class="modal-detail">
+      <dt>AI Confidence</dt>
+      <dd style="color:var(--gold)">83.1%</dd>
+      <dt>Current Odds</dt>
+      <dd>6:1</dd>
+      <dt>Key Signals</dt>
+      <dd>Reliable performance. Jockey has 14 years experience. Horse's Spotify: "Classical Focus Music."</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools!')">&#9889; Go Long</button>
+  `,
+  'horse-gluestick': `
+    <h2>&#127943; Gluestick</h2>
+    <p>The AI says short this horse. The name alone should tell you everything you need to know.</p>
+    <div class="modal-detail">
+      <dt>AI Confidence</dt>
+      <dd style="color:var(--red)">41.2% &#x2193;</dd>
+      <dt>Current Odds</dt>
+      <dd>50:1</dd>
+      <dt>Key Signals</dt>
+      <dd>Gait analysis: concerning. Jockey posted "pray for me" on IG. Spotify: "Sad Horse Music" (not a real genre, but the horse found it).</dd>
+      <dt>AI Recommendation</dt>
+      <dd style="color:var(--red)">&#9888; SHORT</dd>
+    </div>
+    <button class="btn btn-red" style="width:100%;" onclick="alert('&#127912; Happy April Fools! Gluestick appreciates your lack of confidence.')">&#128200; Short Gluestick</button>
+  `,
+  blackjack: `
+    <h2>&#127183; Blackjack</h2>
+    <p>Classic 6-deck blackjack with a twist: every winning hand auto-converts to your chosen cryptocurrency.</p>
+    <div class="modal-detail">
+      <dt>House Edge</dt>
+      <dd>0.5% (we're generous for a criminal enterprise)</dd>
+      <dt>Auto-Convert To</dt>
+      <dd>$BTC (default) | $ETH | $DOGE</dd>
+      <dt>AI Assistant</dt>
+      <dd>Card counting helper (counts to 21, that's it)</dd>
+      <dt>Settlement</dt>
+      <dd>On-chain, immutable, admissible in court</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools! No actual gambling occurred.')">&#127183; Deal Me In</button>
+  `,
+  roulette: `
+    <h2>&#127920; Roulette</h2>
+    <p>European single-zero roulette. Every spin mints an NFT of the result. Nobody asked for this feature but we built it anyway.</p>
+    <div class="modal-detail">
+      <dt>Type</dt>
+      <dd>European (single zero, because we have class)</dd>
+      <dt>Auto-Convert</dt>
+      <dd>Winnings &#8594; $ETH (default)</dd>
+      <dt>Spin NFT</dt>
+      <dd>Minted on every spin (gas fees: your problem)</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools!')">&#127920; Spin the Wheel</button>
+  `,
+  poker: `
+    <h2>&#127183; Texas Hold'em</h2>
+    <p>No-limit Hold'em where the pot auto-converts to crypto at showdown. AI reads opponents' tweet history to predict bluffs.</p>
+    <div class="modal-detail">
+      <dt>Stakes</dt>
+      <dd>$1/$2 to $10,000/$20,000 (in crypto)</dd>
+      <dt>AI Bluff Detection</dt>
+      <dd>Scrapes Twitter, Reddit, and body language via webcam</dd>
+      <dt>Settlement</dt>
+      <dd>Pot &#8594; Winner's crypto wallet at showdown</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools!')">&#127183; Take a Seat</button>
+  `,
+  baccarat: `
+    <h2>&#127183; Baccarat</h2>
+    <p>For the sophisticated degenerate. James Bond mode available — automatically sends a martini emoji to your Slack after each win.</p>
+    <div class="modal-detail">
+      <dt>House Edge</dt>
+      <dd>1.06% (banker bet)</dd>
+      <dt>James Bond Mode</dt>
+      <dd>&#127864; Enabled (sends martini emoji on win)</dd>
+      <dt>Auto-Convert</dt>
+      <dd>Winnings &#8594; $BTC</dd>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="alert('&#127912; Happy April Fools! Shaken, not stirred.')">&#127864; Play Baccarat</button>
+  `,
+};
+
+function openModal(id) {
+  const overlay = document.getElementById('modal-overlay');
+  const content = document.getElementById('modal-content');
+  content.innerHTML = modalTemplates[id] || '<h2>Coming Soon</h2><p>This feature is still being developed. Or litigated. Hard to tell.</p>';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// Make all "Trade/Short/Play" buttons in leaderboards trigger modals
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openModal('launch');
+  });
+});
+</script>
+
+</body>
+</html>
