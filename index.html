@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0f" />
   <title>OmniExchange — The Universal Trading Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Preconnect to Google Fonts origins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Non-render-blocking font load -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -54,6 +61,8 @@
       pointer-events: none;
       z-index: 0;
       transition: all 1s ease;
+      transform: translateZ(0);
+      contain: strict;
     }
     .glow-orb.green { background: var(--accent); top: -200px; right: -100px; }
     .glow-orb.purple { background: var(--accent-2); bottom: -200px; left: -100px; }
@@ -118,8 +127,8 @@
     .nav-cta:hover { opacity: 0.85; }
 
     /* ── Pages ── */
-    .page { display: none; min-height: 100vh; }
-    .page.active { display: block; }
+    .page { display: none; min-height: 100vh; content-visibility: auto; contain-intrinsic-size: 0 500px; }
+    .page.active { display: block; content-visibility: visible; }
 
     /* ── Ticker ── */
     .ticker-wrap {
@@ -133,6 +142,7 @@
       gap: 48px;
       animation: scroll 35s linear infinite;
       width: max-content;
+      will-change: transform;
     }
     @keyframes scroll {
       0% { transform: translateX(0); }
